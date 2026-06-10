@@ -170,9 +170,41 @@ const getactivityLogs = async (req, res) => {
       success: false,
       message: error.message,
     });
-    
+
   }
 };
+
+const getAnalytics = async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments();
+
+    const totalTasks = await Task.countDocuments();
+
+    const completedTasks =
+      await Task.countDocuments({
+        status: "Completed",
+      });
+
+    const pendingTasks =
+      await Task.countDocuments({
+        status: "Pending",
+      });
+
+    res.status(200).json({
+      success: true,
+      totalUsers,
+      totalTasks,
+      completedTasks,
+      pendingTasks,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAllUsers,
   updateUserStatus,
@@ -180,6 +212,7 @@ module.exports = {
   deleteUser,
   getAllTasks,
   deleteTask,
-  getactivityLogs
+  getactivityLogs,
+  getAnalytics,
 };
 

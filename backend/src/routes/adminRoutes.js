@@ -8,6 +8,7 @@ const {
   updateUserRole,
   deleteUser,
   getactivityLogs,
+  getAnalytics,
 } = require(
   "../controllers/adminController"
 );
@@ -40,6 +41,8 @@ router.delete(
   deleteUser
 );
 
+
 router.get("/activity-logs", getactivityLogs);
+router.get("/analytics", getAnalytics);
 
 module.exports = router;
