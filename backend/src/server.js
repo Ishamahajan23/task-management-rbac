@@ -16,6 +16,13 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.send("Server Running");
 });
+app.use("/api/auth", require("./routes/authRoutes"));
+app.use(
+  "/api/admin",
+  require("./routes/adminRoutes")
+);
+
+app.use("/api/tasks", require("./routes/taskRoutes"));
 
 const PORT = process.env.PORT || 3000;
 
