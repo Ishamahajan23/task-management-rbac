@@ -47,6 +47,14 @@ const adminSlice = createSlice({
         user.status = action.payload.status;
       }
     },
+    updateUserRole: (state, action) => {
+      const user = state.users.find(
+        (u) => u._id === action.payload._id
+      );
+      if (user) {
+        user.role = action.payload.role;
+      }
+    },
     setError: (state, action) => {
       state.error = action.payload;
     },
@@ -64,6 +72,7 @@ export const {
   setAnalytics,
   deleteUser,
   updateUserStatus,
+  updateUserRole,
   setError,
   clearError,
 } = adminSlice.actions;

@@ -18,6 +18,13 @@ export const adminService = {
     });
   },
 
+  updateUserRole: async (id, role) => {
+    return makeRequest(api.admin.updateUserRole(id), {
+      method: 'PUT',
+      body: JSON.stringify({ role }),
+    });
+  },
+
   getAllTasks: async () => {
     return makeRequest(api.admin.allTasks);
   },
