@@ -22,7 +22,7 @@ const EditTask = () => {
       try {
         const response = await taskService.getTaskById(id);
         setFormData(response);
-      } catch (err) {
+      } catch {
         setError('Failed to load task');
       }
     };

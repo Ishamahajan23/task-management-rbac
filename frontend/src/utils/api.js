@@ -19,6 +19,7 @@ const api = {
     users: `${API_BASE_URL}/admin/users`,
     deleteUser: (id) => `${API_BASE_URL}/admin/users/${id}`,
     updateUserStatus: (id) => `${API_BASE_URL}/admin/users/${id}/status`,
+    updateUserRole: (id) => `${API_BASE_URL}/admin/users/${id}/role`,
     allTasks: `${API_BASE_URL}/admin/tasks`,
     deleteTask: (id) => `${API_BASE_URL}/admin/tasks/${id}`,
     activityLogs: `${API_BASE_URL}/admin/activity-logs`,
