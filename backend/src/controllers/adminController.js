@@ -88,6 +88,14 @@ const deleteUser = async (req, res) => {
       });
     }
 
+    await ActivityLog.updateMany(
+      { userId: user._id },
+      {
+        userName: user.name,
+        userEmail: user.email,
+      }
+    );
+
     await user.deleteOne();
 
     res.status(200).json({
