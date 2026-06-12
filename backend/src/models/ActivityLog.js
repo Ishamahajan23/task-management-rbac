@@ -9,6 +9,14 @@ const activityLogSchema =
         ref: "User",
       },
 
+      userName: {
+        type: String,
+      },
+
+      userEmail: {
+        type: String,
+      },
+
       action: {
         type: String,
         required: true,

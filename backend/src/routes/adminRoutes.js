@@ -8,6 +8,7 @@ const {
   updateUserRole,
   deleteUser,
   getAllTasks,
+  deleteTask,
   getactivityLogs,
   getAnalytics,
 } = require(
@@ -43,6 +44,7 @@ router.delete(
 );
 
 router.get("/tasks", getAllTasks);
+router.delete("/tasks/:id", deleteTask);
 router.get("/activity-logs", getactivityLogs);
 router.get("/analytics", getAnalytics);
 

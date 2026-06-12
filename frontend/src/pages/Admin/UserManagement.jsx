@@ -30,7 +30,10 @@ const UserManagement = () => {
   const dispatch = useDispatch();
   const { users, isLoading } = useSelector((state) => state.admin);
   const { user: currentUser } = useSelector((state) => state.auth);
-  const visibleUsers = users.filter((u) => u._id !== currentUser?.id);
+  const currentId = currentUser?._id || currentUser?.id;
+  const visibleUsers = users.filter(
+    (u) => u._id !== currentId && u.email !== currentUser?.email
+  );
   const [confirm, setConfirm] = useState({ open: false, id: null, name: '' });
   const [confirmLoading, setConfirmLoading] = useState(false);
 
