@@ -22,11 +22,12 @@ const TableSkeleton = ({ cols = 5, rows = 6 }) => (
 
 const TaskMonitoring = () => {
   const dispatch = useDispatch();
-  const { allTasks, isLoading } = useSelector((state) => state.admin);
+  const { allTasks, tasksLoaded, isLoading } = useSelector((state) => state.admin);
   const [confirm, setConfirm] = useState({ open: false, id: null, title: '' });
   const [confirmLoading, setConfirmLoading] = useState(false);
 
   useEffect(() => {
+    if (tasksLoaded) return;
     const fetchTasks = async () => {
       dispatch(setLoading(true));
       try {
@@ -39,7 +40,7 @@ const TaskMonitoring = () => {
       }
     };
     fetchTasks();
-  }, [dispatch]);
+  }, [dispatch, tasksLoaded]);
 
   const handleDeleteTask = async () => {
     setConfirmLoading(true);

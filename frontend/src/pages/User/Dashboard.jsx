@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import UserLayout from '../../layouts/UserLayout';
@@ -47,20 +47,16 @@ const TaskSkeleton = () => (
 
 const Dashboard = () => {
   const dispatch = useDispatch();
-  const { myTasks, isLoading } = useSelector((state) => state.task);
+  const { myTasks, myTasksLoaded, isLoading } = useSelector((state) => state.task);
   const { user } = useSelector((state) => state.auth);
-  const [stats, setStats] = useState({ total: 0, completed: 0, pending: 0 });
 
   useEffect(() => {
+    if (myTasksLoaded) return;
     const fetchTasks = async () => {
       dispatch(setLoading(true));
       try {
         const response = await taskService.getAllTasks();
         dispatch(setMyTasks(response.tasks || []));
-        const tasks = response.tasks || [];
-        const completed = tasks.filter((t) => t.status === TASK_STATUS.COMPLETED).length;
-        const pending = tasks.filter((t) => t.status === TASK_STATUS.PENDING).length;
-        setStats({ total: tasks.length, completed, pending });
       } catch (error) {
         console.error('Failed to fetch tasks:', error);
       } finally {
@@ -68,7 +64,13 @@ const Dashboard = () => {
       }
     };
     fetchTasks();
-  }, [dispatch]);
+  }, [dispatch, myTasksLoaded]);
+
+  const stats = useMemo(() => {
+    const completed = myTasks.filter((t) => t.status === TASK_STATUS.COMPLETED).length;
+    const pending = myTasks.filter((t) => t.status === TASK_STATUS.PENDING).length;
+    return { total: myTasks.length, completed, pending };
+  }, [myTasks]);
 
   const completionPct = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
   const firstName = user?.name ? user.name.split(' ')[0] : null;

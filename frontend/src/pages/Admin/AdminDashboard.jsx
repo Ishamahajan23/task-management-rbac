@@ -33,9 +33,10 @@ const StatCard = ({ label, value, subtitle, icon, colorClass, bgClass, barClass,
 
 const AdminDashboard = () => {
   const dispatch = useDispatch();
-  const { analytics, isLoading } = useSelector((state) => state.admin);
+  const { analytics, analyticsLoaded, isLoading } = useSelector((state) => state.admin);
 
   useEffect(() => {
+    if (analyticsLoaded) return;
     const fetchAnalytics = async () => {
       dispatch(setLoading(true));
       try {
@@ -48,7 +49,7 @@ const AdminDashboard = () => {
       }
     };
     fetchAnalytics();
-  }, [dispatch]);
+  }, [dispatch, analyticsLoaded]);
 
   const completionPct =
     analytics.totalTasks > 0

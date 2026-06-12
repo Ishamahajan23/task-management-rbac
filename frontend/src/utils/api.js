@@ -44,7 +44,20 @@ const makeRequest = async (url, options = {}) => {
   });
 
   if (!response.ok) {
-    const error = await response.json();
+    const error = await response.json().catch(() => ({
+      message: 'Something went wrong',
+    }));
+
+    const sessionRejected =
+      token &&
+      (response.status === 401 || error.message === 'Account is inactive');
+
+    if (sessionRejected && !url.includes('/auth/login')) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.replace('/login');
+    }
+
     throw error;
   }
 

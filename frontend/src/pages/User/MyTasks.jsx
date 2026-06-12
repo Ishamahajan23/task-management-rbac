@@ -31,13 +31,14 @@ const FILTERS = ['All', 'Pending', 'Completed'];
 const MyTasks = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { myTasks, isLoading } = useSelector((state) => state.task);
+  const { myTasks, myTasksLoaded, isLoading } = useSelector((state) => state.task);
   const [viewingTask, setViewingTask] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState({ open: false, id: null, title: '' });
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [filter, setFilter] = useState('All');
 
   useEffect(() => {
+    if (myTasksLoaded) return;
     const fetchTasks = async () => {
       dispatch(setLoading(true));
       try {
@@ -50,7 +51,7 @@ const MyTasks = () => {
       }
     };
     fetchTasks();
-  }, [dispatch]);
+  }, [dispatch, myTasksLoaded]);
 
   const openDeleteConfirm = (taskId, taskTitle) => {
     setDeleteConfirm({ open: true, id: taskId, title: taskTitle });

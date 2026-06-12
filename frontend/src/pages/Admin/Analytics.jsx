@@ -50,9 +50,10 @@ const MetricRow = ({ label, value, pct, colorClass, barClass, loading }) => (
 
 const Analytics = () => {
   const dispatch = useDispatch();
-  const { analytics, isLoading } = useSelector((state) => state.admin);
+  const { analytics, analyticsLoaded, isLoading } = useSelector((state) => state.admin);
 
   useEffect(() => {
+    if (analyticsLoaded) return;
     const fetchAnalytics = async () => {
       dispatch(setLoading(true));
       try {
@@ -65,7 +66,7 @@ const Analytics = () => {
       }
     };
     fetchAnalytics();
-  }, [dispatch]);
+  }, [dispatch, analyticsLoaded]);
 
   const completionPct =
     analytics.totalTasks > 0

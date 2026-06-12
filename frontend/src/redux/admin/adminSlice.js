@@ -11,6 +11,10 @@ const initialState = {
     pendingTasks: 0,
     activeUsers: 0,
   },
+  usersLoaded: false,
+  tasksLoaded: false,
+  logsLoaded: false,
+  analyticsLoaded: false,
   isLoading: false,
   error: null,
 };
@@ -24,15 +28,19 @@ const adminSlice = createSlice({
     },
     setUsers: (state, action) => {
       state.users = action.payload;
+      state.usersLoaded = true;
     },
     setAllTasks: (state, action) => {
       state.allTasks = action.payload;
+      state.tasksLoaded = true;
     },
     setActivityLogs: (state, action) => {
       state.activityLogs = action.payload;
+      state.logsLoaded = true;
     },
     setAnalytics: (state, action) => {
       state.analytics = action.payload;
+      state.analyticsLoaded = true;
     },
     deleteUser: (state, action) => {
       state.users = state.users.filter(
@@ -61,6 +69,9 @@ const adminSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase('auth/logout', () => initialState);
   },
 });
 

@@ -4,7 +4,8 @@ const User = require("../models/User");
 const createLog = async (
   userId,
   action,
-  taskId = null
+  taskId = null,
+  taskTitle = null
 ) => {
   try {
     const user = await User.findById(
@@ -15,6 +16,7 @@ const createLog = async (
       userId,
       action,
       taskId,
+      taskTitle,
       userName: user?.name,
       userEmail: user?.email,
     });
