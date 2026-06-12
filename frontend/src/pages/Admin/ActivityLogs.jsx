@@ -24,6 +24,24 @@ const ACTION_LABELS = {
   DELETE_TASK: 'Task Deleted',
 };
 
+const normalizeAction = (action) => {
+  if (ACTION_LABELS[action]) return action;
+  const a = (action || '').toLowerCase();
+  if (a.includes('delet')) return 'DELETE_TASK';
+  if (a.includes('creat')) return 'CREATE_TASK';
+  if (a.includes('updat')) return 'UPDATE_TASK';
+  if (a.includes('logout')) return 'LOGOUT';
+  if (a.includes('login')) return 'LOGIN';
+  return action;
+};
+
+const logTaskTitle = (log) => {
+  if (log.taskId?.title) return log.taskId.title;
+  if (log.taskTitle) return log.taskTitle;
+  const match = /^Deleted task: (.+) by admin$/.exec(log.action || '');
+  return match ? match[1] : null;
+};
+
 const RANGE_OPTIONS = [
   { label: 'Today', value: 'today' },
   { label: 'Last 3 days', value: '3' },
@@ -111,7 +129,7 @@ const UserCard = ({ user, logs, actionFilter }) => {
 
   const filteredLogs = useMemo(() => {
     return logs.filter((log) => {
-      const matchesAction = actionFilter === 'All' || log.action === actionFilter;
+      const matchesAction = actionFilter === 'All' || normalizeAction(log.action) === actionFilter;
       return matchesAction && matchesRange(log.createdAt, range);
     });
   }, [logs, actionFilter, range]);
@@ -190,18 +208,20 @@ const UserCard = ({ user, logs, actionFilter }) => {
               <div className="absolute left-[5px] top-2 bottom-2 w-px bg-slate-200" />
               <div className="space-y-5">
                 {shownLogs.map((log, i) => {
-                  const style = ACTION_STYLES[log.action] || DEFAULT_STYLE;
+                  const action = normalizeAction(log.action);
+                  const style = ACTION_STYLES[action] || DEFAULT_STYLE;
+                  const taskTitle = logTaskTitle(log);
                   return (
                     <div key={log._id || i} className="flex items-start gap-4 relative">
                       <div className={`mt-[5px] h-2.5 w-2.5 rounded-full shrink-0 ring-4 ring-white ${style.dot}`} />
                       <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                         <div className="flex items-center gap-2.5 flex-wrap min-w-0">
                           <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset ${style.badge}`}>
-                            {ACTION_LABELS[log.action] || log.action}
+                            {ACTION_LABELS[action] || log.action}
                           </span>
-                          {log.taskId?.title && (
-                            <span className="text-xs text-slate-500 truncate max-w-[220px]" title={log.taskId.title}>
-                              {log.taskId.title}
+                          {taskTitle && (
+                            <span className="text-xs text-slate-500 truncate max-w-[220px]" title={taskTitle}>
+                              {taskTitle}
                             </span>
                           )}
                         </div>
@@ -287,32 +307,31 @@ const ActivityLogs = () => {
     <AdminLayout>
       <div className="space-y-6 animate-fade-in">
         <div
-          className="relative rounded-2xl overflow-hidden border border-slate-200"
-          style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' }}
+          className="relative rounded-2xl overflow-hidden border border-slate-200 bg-emerald-50"
         >
           <div
             className="absolute right-0 top-0 h-full w-72 pointer-events-none"
-            style={{ background: 'radial-gradient(ellipse at right center, rgba(22,145,121,0.25) 0%, transparent 70%)' }}
+            // style={{ background: 'linear-gradient(90deg, rgba(22,145,121,0.25) 0%, transparent 70%)' }}
           />
           <div className="relative px-6 py-6 sm:px-8 flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-white">Activity Logs</h1>
-              <p className="text-sm text-slate-400 mt-1">
+              <h1 className="text-2xl font-bold text-emerald-600">Activity Logs</h1>
+              <p className="text-sm text-slate-500 mt-1">
                 Full audit trail of user sessions and task activity.
               </p>
             </div>
             <div className="flex gap-6">
               <div>
-                <p className="text-2xl font-bold text-white tabular-nums">
+                <p className="text-2xl font-bold text-emerald-600 text-tabular-nums">
                   {isLoading ? '—' : activityLogs.length}
                 </p>
-                <p className="text-xs text-slate-400">Total events</p>
+                <p className="text-xs text-slate-600">Total events</p>
               </div>
               <div>
-                <p className="text-2xl font-bold text-white tabular-nums">
+                <p className="text-2xl font-bold text-emerald-600 text-tabular-nums">
                   {isLoading ? '—' : grouped.length}
                 </p>
-                <p className="text-xs text-slate-400">Users</p>
+                <p className="text-xs text-slate-600">Users</p>
               </div>
             </div>
           </div>
@@ -341,7 +360,7 @@ const ActivityLogs = () => {
                 onClick={() => setActionFilter(f)}
                 className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 ${
                   actionFilter === f
-                    ? 'bg-slate-900 text-white shadow-sm'
+                    ? 'bg-emerald-900 text-white shadow-sm'
                     : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'
                 }`}
               >

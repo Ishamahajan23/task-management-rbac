@@ -145,7 +145,9 @@ const deleteTask = async (req, res) => {
     await task.deleteOne();
     await createLog(
       req.user._id,
-      `Deleted task: ${task.title} by admin`
+      "DELETE_TASK",
+      task._id,
+      task.title
     );
 
     res.status(200).json({

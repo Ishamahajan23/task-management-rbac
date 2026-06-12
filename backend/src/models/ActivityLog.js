@@ -27,6 +27,10 @@ const activityLogSchema =
           mongoose.Schema.Types.ObjectId,
         ref: "Task",
       },
+
+      taskTitle: {
+        type: String,
+      },
     },
     {
       timestamps: true,

@@ -62,7 +62,9 @@ const updateTask = async (req, res) => {
     await task.save();
     await createLog(
       req.user._id,
-      "UPDATE_TASK"
+      "UPDATE_TASK",
+      task._id,
+      task.title
     );
 
     res.status(200).json(task);
@@ -91,7 +93,9 @@ const deleteTask = async (req, res) => {
     await task.deleteOne();
     await createLog(
       req.user._id,
-      "DELETE_TASK"
+      "DELETE_TASK",
+      task._id,
+      task.title
     );
 
     res.status(200).json({
@@ -114,7 +118,9 @@ const createTask = async (req, res) => {
     });
     await createLog(
       req.user._id,
-      "CREATE_TASK"
+      "CREATE_TASK",
+      task._id,
+      task.title
     );
     res.status(201).json({
         success: true,
