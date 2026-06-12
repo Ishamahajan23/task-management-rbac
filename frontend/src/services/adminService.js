@@ -13,14 +13,14 @@ export const adminService = {
 
   updateUserStatus: async (id, status) => {
     return makeRequest(api.admin.updateUserStatus(id), {
-      method: 'PUT',
+      method: 'PATCH',
       body: JSON.stringify({ status }),
     });
   },
 
   updateUserRole: async (id, role) => {
     return makeRequest(api.admin.updateUserRole(id), {
-      method: 'PUT',
+      method: 'PATCH',
       body: JSON.stringify({ role }),
     });
   },

@@ -22,6 +22,16 @@ const ACTION_LABELS = {
   DELETE_TASK: 'Delete Task',
 };
 
+const RANGE_OPTIONS = [
+  { label: 'Today',   value: 'today' },
+  { label: 'Last 3 days',  value: '3' },
+  { label: 'Last 7 days',  value: '7' },
+  { label: 'Last 30 days', value: '30' },
+  { label: 'All time', value: 'all' },
+];
+
+const TRUNCATE = 3;
+
 const initials = (name) =>
   name ? name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2) : '?';
 
@@ -31,6 +41,22 @@ const formatTime = (ts) =>
     hour: '2-digit', minute: '2-digit',
   });
 
+const matchesRange = (ts, range) => {
+  const date = new Date(ts);
+  if (range === 'all') return true;
+  if (range === 'today') {
+    const now = new Date();
+    return (
+      date.getFullYear() === now.getFullYear() &&
+      date.getMonth() === now.getMonth() &&
+      date.getDate() === now.getDate()
+    );
+  }
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - Number(range));
+  return date >= cutoff;
+};
+
 const SkeletonUserCard = () => (
   <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
     <div className="flex items-center gap-4 px-5 py-4 border-b border-slate-100">
@@ -39,12 +65,12 @@ const SkeletonUserCard = () => (
         <span className="skeleton h-4 w-32 inline-block" />
         <span className="skeleton h-3 w-48 inline-block" />
       </div>
-      <span className="skeleton h-6 w-16 rounded-full inline-block" />
+      <span className="skeleton h-7 w-28 rounded-lg inline-block" />
     </div>
     <div className="px-5 py-4 space-y-4">
       {Array.from({ length: 3 }).map((_, i) => (
         <div key={i} className="flex items-start gap-3">
-          <span className="skeleton h-2 w-2 rounded-full mt-1.5 inline-block shrink-0" />
+          <span className="skeleton h-2.5 w-2.5 rounded-full mt-1.5 inline-block shrink-0" />
           <div className="space-y-1.5 flex-1">
             <span className="skeleton h-5 w-24 rounded-full inline-block" />
             <span className="skeleton h-3 w-40 inline-block" />
@@ -54,6 +80,124 @@ const SkeletonUserCard = () => (
     </div>
   </div>
 );
+
+const UserCard = ({ user, logs, actionFilter }) => {
+  const [range, setRange] = useState('today');
+  const [expanded, setExpanded] = useState(false);
+
+  const userName = user?.name || 'Unknown User';
+  const userEmail = user?.email || '';
+  const userRole = user?.role || '';
+
+  const filteredLogs = useMemo(() => {
+    return logs.filter((log) => {
+      const matchesAction = actionFilter === 'All' || log.action === actionFilter;
+      return matchesAction && matchesRange(log.createdAt, range);
+    });
+  }, [logs, actionFilter, range]);
+
+  const shownLogs = expanded ? filteredLogs : filteredLogs.slice(0, TRUNCATE);
+  const hiddenCount = filteredLogs.length - TRUNCATE;
+
+  const rangeLabel = RANGE_OPTIONS.find((o) => o.value === range)?.label ?? '';
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <div className="flex flex-wrap items-center gap-3 px-5 py-3.5 border-b border-slate-100 bg-slate-50/60">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-700 select-none">
+          {initials(userName)}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-slate-900 truncate">{userName}</p>
+          <p className="text-xs text-slate-400 truncate">{userEmail}</p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {userRole && (
+            <span className="rounded-full bg-slate-200 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+              {userRole}
+            </span>
+          )}
+          <div className="relative">
+            <select
+              value={range}
+              onChange={(e) => { setRange(e.target.value); setExpanded(false); }}
+              className="rounded-lg border border-slate-200 bg-white pl-3 pr-8 py-1.5 text-xs font-medium text-slate-700 cursor-pointer transition hover:border-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 appearance-none"
+            >
+              {RANGE_OPTIONS.map(({ label, value }) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
+            </select>
+            <svg className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div className="px-5 py-4">
+        {filteredLogs.length === 0 ? (
+          <p className="text-sm text-slate-400 text-center py-3">
+            No activity for {rangeLabel.toLowerCase()}.
+          </p>
+        ) : (
+          <>
+            <div className="relative">
+              <div className="absolute left-[5px] top-2 bottom-2 w-px bg-slate-100" />
+              <div className="space-y-4">
+                {shownLogs.map((log, i) => {
+                  const style = ACTION_STYLES[log.action] || { badge: 'bg-slate-100 text-slate-700', dot: 'bg-slate-400' };
+                  return (
+                    <div key={log._id || i} className="flex items-start gap-4 relative">
+                      <div className={`mt-1.5 h-2.5 w-2.5 rounded-full shrink-0 ring-2 ring-white ${style.dot}`} />
+                      <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${style.badge}`}>
+                            {ACTION_LABELS[log.action] || log.action}
+                          </span>
+                          {log.taskId?.title && (
+                            <span className="text-xs text-slate-500 truncate max-w-[200px]">
+                              {log.taskId.title}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-xs text-slate-400 shrink-0">
+                          {formatTime(log.createdAt)}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {filteredLogs.length > TRUNCATE && (
+              <button
+                onClick={() => setExpanded((v) => !v)}
+                className="mt-4 flex items-center gap-1.5 text-xs font-medium text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer focus-visible:outline-none"
+              >
+                {expanded ? (
+                  <>
+                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+                    </svg>
+                    Show less
+                  </>
+                ) : (
+                  <>
+                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                    Show {hiddenCount} more
+                  </>
+                )}
+              </button>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
 
 const ActivityLogs = () => {
   const dispatch = useDispatch();
@@ -77,11 +221,9 @@ const ActivityLogs = () => {
   }, [dispatch]);
 
   const grouped = useMemo(() => {
-    const filtered = activityLogs.filter((log) => {
-      const matchesAction = actionFilter === 'All' || log.action === actionFilter;
-      const matchesSearch = !search || log.userId?.name?.toLowerCase().includes(search.toLowerCase());
-      return matchesAction && matchesSearch;
-    });
+    const filtered = activityLogs.filter((log) =>
+      !search || log.userId?.name?.toLowerCase().includes(search.toLowerCase())
+    );
 
     const map = {};
     filtered.forEach((log) => {
@@ -95,9 +237,7 @@ const ActivityLogs = () => {
       const bLatest = new Date(b.logs[0]?.createdAt ?? 0);
       return bLatest - aLatest;
     });
-  }, [activityLogs, actionFilter, search]);
-
-  const totalFiltered = grouped.reduce((sum, g) => sum + g.logs.length, 0);
+  }, [activityLogs, search]);
 
   return (
     <AdminLayout>
@@ -113,9 +253,7 @@ const ActivityLogs = () => {
           <div className="relative px-6 py-5 sm:px-8">
             <h1 className="text-2xl font-bold text-slate-900">Activity Logs</h1>
             <p className="text-sm text-slate-500 mt-0.5">
-              {isLoading
-                ? 'Loading…'
-                : `${totalFiltered} event${totalFiltered !== 1 ? 's' : ''} across ${grouped.length} user${grouped.length !== 1 ? 's' : ''}`}
+              {isLoading ? 'Loading…' : `${grouped.length} user${grouped.length !== 1 ? 's' : ''} with activity`}
             </p>
           </div>
         </div>
@@ -147,7 +285,7 @@ const ActivityLogs = () => {
                     : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
                 }`}
               >
-                {f === 'All' ? 'All' : ACTION_LABELS[f]}
+                {f === 'All' ? 'All Actions' : ACTION_LABELS[f]}
               </button>
             ))}
           </div>
@@ -165,70 +303,18 @@ const ActivityLogs = () => {
               </svg>
             </div>
             <p className="text-sm font-medium text-slate-600">No logs found</p>
-            <p className="text-xs text-slate-400 mt-0.5">Try adjusting your filters.</p>
+            <p className="text-xs text-slate-400 mt-0.5">Try adjusting your search.</p>
           </div>
         ) : (
-          <div className="space-y-4 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {grouped.map(({ user, logs }) => {
-              const userId = user?._id || 'unknown';
-              const userName = user?.name || 'Unknown User';
-              const userEmail = user?.email || '';
-              const userRole = user?.role || '';
-              return (
-                <div key={userId} className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                  <div className="flex items-center gap-4 px-5 py-4 border-b border-slate-100 bg-slate-50/60">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-700 select-none">
-                      {initials(userName)}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-slate-900 truncate">{userName}</p>
-                      <p className="text-xs text-slate-400 truncate">{userEmail}</p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      {userRole && (
-                        <span className="rounded-full bg-slate-200 px-2.5 py-0.5 text-xs font-medium text-slate-600">
-                          {userRole}
-                        </span>
-                      )}
-                      <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
-                        {logs.length} event{logs.length !== 1 ? 's' : ''}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="px-5 py-4">
-                    <div className="relative">
-                      <div className="absolute left-[5px] top-2 bottom-2 w-px bg-slate-100" />
-                      <div className="space-y-4">
-                        {logs.map((log, i) => {
-                          const style = ACTION_STYLES[log.action] || { badge: 'bg-slate-100 text-slate-700', dot: 'bg-slate-400' };
-                          return (
-                            <div key={log._id || i} className="flex items-start gap-4 relative">
-                              <div className={`mt-1.5 h-2.5 w-2.5 rounded-full shrink-0 ring-2 ring-white ${style.dot}`} />
-                              <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${style.badge}`}>
-                                    {ACTION_LABELS[log.action] || log.action}
-                                  </span>
-                                  {log.taskId?.title && (
-                                    <span className="text-xs text-slate-500 truncate max-w-[200px]">
-                                      {log.taskId.title}
-                                    </span>
-                                  )}
-                                </div>
-                                <span className="text-xs text-slate-400 shrink-0">
-                                  {formatTime(log.createdAt)}
-                                </span>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="space-y-4">
+            {grouped.map(({ user, logs }) => (
+              <UserCard
+                key={user?._id || 'unknown'}
+                user={user}
+                logs={logs}
+                actionFilter={actionFilter}
+              />
+            ))}
           </div>
         )}
       </div>
