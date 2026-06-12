@@ -3,6 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
   tasks: [],
   myTasks: [],
+  myTasksLoaded: false,
   isLoading: false,
   error: null,
   selectedTask: null,
@@ -20,6 +21,7 @@ const taskSlice = createSlice({
     },
     setMyTasks: (state, action) => {
       state.myTasks = action.payload;
+      state.myTasksLoaded = true;
     },
     addTask: (state, action) => {
       state.myTasks.push(action.payload);
@@ -46,6 +48,9 @@ const taskSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase('auth/logout', () => initialState);
   },
 });
 

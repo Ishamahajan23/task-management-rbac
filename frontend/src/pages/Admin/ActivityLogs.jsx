@@ -268,11 +268,12 @@ const UserCard = ({ user, logs, actionFilter }) => {
 
 const ActivityLogs = () => {
   const dispatch = useDispatch();
-  const { activityLogs, isLoading } = useSelector((state) => state.admin);
+  const { activityLogs, logsLoaded, isLoading } = useSelector((state) => state.admin);
   const [actionFilter, setActionFilter] = useState('All');
   const [search, setSearch] = useState('');
 
   useEffect(() => {
+    if (logsLoaded) return;
     const fetchLogs = async () => {
       dispatch(setLoading(true));
       try {
@@ -285,7 +286,7 @@ const ActivityLogs = () => {
       }
     };
     fetchLogs();
-  }, [dispatch]);
+  }, [dispatch, logsLoaded]);
 
   const grouped = useMemo(() => {
     const map = {};

@@ -28,7 +28,7 @@ const TableSkeleton = ({ cols = 5, rows = 5 }) => (
 
 const UserManagement = () => {
   const dispatch = useDispatch();
-  const { users, isLoading } = useSelector((state) => state.admin);
+  const { users, usersLoaded, isLoading } = useSelector((state) => state.admin);
   const { user: currentUser } = useSelector((state) => state.auth);
   const currentId = currentUser?._id || currentUser?.id;
   const visibleUsers = users.filter(
@@ -38,6 +38,7 @@ const UserManagement = () => {
   const [confirmLoading, setConfirmLoading] = useState(false);
 
   useEffect(() => {
+    if (usersLoaded) return;
     const fetchUsers = async () => {
       dispatch(setLoading(true));
       try {
@@ -50,7 +51,7 @@ const UserManagement = () => {
       }
     };
     fetchUsers();
-  }, [dispatch]);
+  }, [dispatch, usersLoaded]);
 
   const handleDeleteUser = async () => {
     setConfirmLoading(true);

@@ -200,9 +200,15 @@ const getAnalytics = async (req, res) => {
         status: "Pending",
       });
 
+    const activeUsers =
+      await User.countDocuments({
+        status: "Active",
+      });
+
     res.status(200).json({
       success: true,
       totalUsers,
+      activeUsers,
       totalTasks,
       completedTasks,
       pendingTasks,

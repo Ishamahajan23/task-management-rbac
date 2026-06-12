@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import UserLayout from '../../layouts/UserLayout';
+import { updateTask } from '../../redux/task/taskSlice';
 import { taskService } from '../../services/taskService';
 import { TASK_STATUS } from '../../utils/constants';
 import TaskModal from '../../components/TaskModal';
@@ -9,6 +11,7 @@ import TaskForm from '../../components/TaskForm';
 const EditTask = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -44,7 +47,10 @@ const EditTask = () => {
     setLoading(true);
 
     try {
-      await taskService.updateTask(id, formData);
+      const response = await taskService.updateTask(id, formData);
+      if (response?._id) {
+        dispatch(updateTask(response));
+      }
       navigate('/my-tasks');
     } catch (err) {
       setError(err.message || 'Failed to update task');
